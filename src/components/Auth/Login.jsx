@@ -3,15 +3,14 @@ import { useDispatch } from "react-redux";
 import { loginSuccess } from "../../redux/AuthSlice";
 import { Link } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import axios from "axios";
+import axiosInstance from "../../utils/axiosInstance"; // centralized axios instance
 import GoogleAuthButton from "./GoogleAuthButton";
-
 
 const Login = () => {
   const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(false);
 
-  // form ke fields ke liye state
+  // form fields
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -19,15 +18,11 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        { email, password },
-        { withCredentials: true } // cookie ke liye
-      );
+      const res = await axiosInstance.post("/auth/login", { email, password });
       dispatch(loginSuccess(res.data));
       alert("Login Successful!");
     } catch (err) {
-      console.error(err);
+      console.error("Login Error:", err.response?.data || err.message);
       alert("Login failed!");
     }
   };
@@ -44,8 +39,8 @@ const Login = () => {
       <div className="bg-black/20 p-8 rounded-2xl w-full max-w-sm">
         <form onSubmit={handleLogin} className="space-y-6">
           <input
-            type="text"
-            placeholder="Email or Username"
+            type="email"
+            placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full px-6 py-4 bg-white text-gray-800 rounded-full border-2 border-transparent focus:border-blue-500 focus:outline-none placeholder-gray-500"
@@ -113,5 +108,3 @@ const Login = () => {
 };
 
 export default Login;
-
-

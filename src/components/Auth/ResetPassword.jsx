@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import axiosInstance from "../../utils/axiosInstance"; // centralized axios
 
 const ResetPassword = () => {
   const { token } = useParams();
@@ -8,21 +8,26 @@ const ResetPassword = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const BASE_URL = import.meta.env.VITE_BACKEND_URL;
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (password !== confirmPassword) {
       alert("Passwords do not match!");
       return;
     }
+
     try {
-      await axios.post(`${BASE_URL}/api/auth/reset-password/${token}`, { password });
+      // ✅ backend expects { token, newPassword }
+      await axiosInstance.post("/auth/reset-password", {
+        token,
+        newPassword: password,
+      });
+
       alert("Password reset successful!");
       navigate("/login");
     } catch (err) {
-      console.error(err);
-      alert("Failed to reset password!");
+      console.error("Reset Error:", err.response?.data || err.message);
+      alert(err.response?.data?.message || "Failed to reset password!");
     }
   };
 

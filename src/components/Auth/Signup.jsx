@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import axios from "axios";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../../redux/AuthSlice";
+import axiosInstance from "../../utils/axiosInstance"; // centralized axios
 
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -16,9 +16,6 @@ const Signup = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // ✅ Backend URL from .env
-  const BASE_URL = import.meta.env.VITE_BACKEND_URL;
-
   const handleSignup = async (e) => {
     e.preventDefault();
 
@@ -28,17 +25,17 @@ const Signup = () => {
     }
 
     try {
-      const res = await axios.post(
-        `${BASE_URL}/api/auth/register`,
-        { name, email, password },
-        { withCredentials: true }
-      );
+      const res = await axiosInstance.post("/auth/register", {
+        name,
+        email,
+        password,
+      });
 
       dispatch(loginSuccess(res.data));
       alert("Signup successful!");
       navigate("/dashboard");
     } catch (err) {
-      console.error(err.response?.data || err);
+      console.error("Signup Error:", err.response?.data || err.message);
       alert(err.response?.data?.message || "Signup failed!");
     }
   };
@@ -95,9 +92,7 @@ const Signup = () => {
             />
             <button
               type="button"
-              onClick={() =>
-                setShowConfirmPassword(!showConfirmPassword)
-              }
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               className="absolute inset-y-0 right-4 flex items-center text-gray-500"
             >
               {showConfirmPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}

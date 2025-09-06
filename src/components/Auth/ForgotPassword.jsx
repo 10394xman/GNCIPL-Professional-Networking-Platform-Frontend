@@ -1,21 +1,20 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import axiosInstance from "../../utils/axiosInstance"; // ✅ centralized axios use karenge
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [emailSent, setEmailSent] = useState(false);
 
-  const BASE_URL = import.meta.env.VITE_BACKEND_URL;
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${BASE_URL}/api/auth/forgot-password`, { email });
+      // ✅ backend expects { email }
+      await axiosInstance.post("/auth/send-mail", { email });
       setEmailSent(true);
     } catch (err) {
-      console.error(err);
-      alert("Failed to send reset link!");
+      console.error("ForgotPassword Error:", err.response?.data || err.message);
+      alert(err.response?.data?.message || "Failed to send reset link!");
     }
   };
 
@@ -46,7 +45,10 @@ const ForgotPassword = () => {
         </form>
         <p className="text-sm text-center mt-6">
           <span className="text-gray-300">Remember your password? </span>
-          <Link to="/login" className="text-indigo-400 font-medium hover:underline focus:outline-none">
+          <Link
+            to="/login"
+            className="text-indigo-400 font-medium hover:underline focus:outline-none"
+          >
             Login
           </Link>
         </p>
@@ -56,9 +58,12 @@ const ForgotPassword = () => {
         <div className="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center p-4">
           <div className="bg-white p-6 rounded-lg shadow-xl text-center max-w-sm">
             <div className="text-green-500 text-5xl mb-4">✓</div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">Success!</h3>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">
+              Success!
+            </h3>
             <p className="text-gray-600 mb-4">
-              A password reset link has been sent to <span className="font-semibold">{email}</span>.
+              A password reset link has been sent to{" "}
+              <span className="font-semibold">{email}</span>.
             </p>
             <button
               onClick={() => setEmailSent(false)}
