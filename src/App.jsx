@@ -23,7 +23,7 @@ function App() {
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <Dashboard /> {/* Yahan Dashboard ke andar hi posts render honge */}
+              <Dashboard />
             </ProtectedRoute>
           }
         />
@@ -36,4 +36,3 @@ function App() {
 }
 
 export default App;
-

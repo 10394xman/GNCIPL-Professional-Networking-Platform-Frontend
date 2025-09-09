@@ -2,8 +2,8 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   user: null,
-  token: null,
-  status: "idle", // 👈 loading / success state ke liye add kiya
+  token: localStorage.getItem("token") || null, // ✅ refresh ke baad bhi token rahe
+  status: "idle",
 };
 
 const authSlice = createSlice({
@@ -14,17 +14,19 @@ const authSlice = createSlice({
       state.user = action.payload.user;
       state.token = action.payload.token;
       state.status = "success";
+
+      // ✅ Save token + user in localStorage
+      localStorage.setItem("token", action.payload.token);
+      localStorage.setItem("user", JSON.stringify(action.payload.user));
     },
     logout: (state) => {
       state.user = null;
       state.token = null;
       state.status = "idle";
-    },
-    loginWithGoogle: (state, action) => {
-      // 👇 yaha tum real Google token handle karoge (abhi ke liye dummy)
-      state.user = { name: "Google User" };
-      state.token = action.payload; // Google token
-      state.status = "success";
+
+      // ✅ Remove token + user
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
     },
     setLoading: (state) => {
       state.status = "loading";
@@ -32,5 +34,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { loginSuccess, logout, loginWithGoogle, setLoading } = authSlice.actions;
+export const { loginSuccess, logout, setLoading } = authSlice.actions;
 export default authSlice.reducer;

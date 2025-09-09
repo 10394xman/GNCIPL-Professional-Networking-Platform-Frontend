@@ -1,11 +1,9 @@
 import axios from "axios";
 
-const API_BASE_URL = "https://global-connect-backend-4ruw.onrender.com"; 
-// ✅ abhi ke liye deployed backend ka link use karo
-
+// ✅ Proxy use kar rahe hain (vite.config.js me set hoga)
 const axiosInstance = axios.create({
-  baseURL: `${API_BASE_URL}/api`,
-  withCredentials: true, // JWT cookies ke liye
+  baseURL: "/api",   // direct /api call → proxy backend pe bhej dega
+  withCredentials: true, // cookies forward hongi
 });
 
 export default axiosInstance;

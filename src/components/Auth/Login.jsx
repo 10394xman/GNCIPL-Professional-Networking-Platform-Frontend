@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../../redux/AuthSlice";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // ✅ navigate import
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import axiosInstance from "../../utils/axiosInstance"; // centralized axios instance
+import axiosInstance from "../../utils/axiosInstance";
 import GoogleAuthButton from "./GoogleAuthButton";
 
 const Login = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate(); // ✅ hook for redirection
   const [showPassword, setShowPassword] = useState(false);
 
   // form fields
@@ -20,7 +21,9 @@ const Login = () => {
     try {
       const res = await axiosInstance.post("/auth/login", { email, password });
       dispatch(loginSuccess(res.data));
+
       alert("Login Successful!");
+      navigate("/dashboard"); // ✅ redirect to dashboard
     } catch (err) {
       console.error("Login Error:", err.response?.data || err.message);
       alert("Login failed!");

@@ -1,18 +1,21 @@
 import React from "react";
-import CreatePostPrompt from "../posts/CreatePostPrompt";
-import PostFeed from "../posts/PostFeed";
+import PostFeed from "../Posts/PostFeed";
 
-function Dashboard() {
+const Dashboard = () => {
   return (
-    <div className="dashboard-container p-4">
-      {/* Post creation prompt */}
-      <CreatePostPrompt />
+    <div className="min-h-screen bg-[#0B1530] text-white p-6">
+      {/* Header */}
+      <header className="mb-6 text-center">
+        <h1 className="text-3xl font-bold">Welcome to Global Connect 🚀</h1>
+        <p className="text-gray-400">Share your thoughts with the community</p>
+      </header>
 
-      {/* Feed of all posts */}
-      <PostFeed />
+      {/* Posts Feed */}
+      <main>
+        <PostFeed />
+      </main>
     </div>
   );
-}
+};
 
 export default Dashboard;
-
