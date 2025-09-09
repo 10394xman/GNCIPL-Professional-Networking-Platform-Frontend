@@ -1,3 +1,4 @@
+// src/redux/PostSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axiosInstance from "../utils/axiosInstance";
 
@@ -7,10 +8,11 @@ export const fetchPosts = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const res = await axiosInstance.get("/posts/feed");
-      return res.data;
+      console.log("FETCH POSTS RESP:", res.data); // 👈 Debug log
+      return res.data; // Check here: might be res.data.posts
     } catch (err) {
       console.error("FetchPosts Error:", err.response?.data || err.message);
-      return rejectWithValue(err.response?.data || { message: "Failed to fetch posts" });
+      return rejectWithValue(err.response?.data || err.message);
     }
   }
 );
@@ -21,15 +23,13 @@ export const createPost = createAsyncThunk(
   async (postData, { rejectWithValue }) => {
     try {
       const res = await axiosInstance.post("/posts", postData, {
-        headers: {
-          // Agar media hai to multipart, warna JSON
-          "Content-Type": postData instanceof FormData ? "multipart/form-data" : "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       });
-      return res.data;
+      console.log("CREATE POST RESP:", res.data); // 👈 Debug log
+      return res.data.post || res.data; // depends on backend response
     } catch (err) {
       console.error("CreatePost Error:", err.response?.data || err.message);
-      return rejectWithValue(err.response?.data || { message: "Failed to create post" });
+      return rejectWithValue(err.response?.data || err.message);
     }
   }
 );
@@ -47,11 +47,13 @@ const postSlice = createSlice({
       // ✅ fetchPosts
       .addCase(fetchPosts.pending, (state) => {
         state.status = "loading";
-        state.error = null;
       })
       .addCase(fetchPosts.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.posts = Array.isArray(action.payload) ? action.payload : []; // ✅ array check
+        console.log("FETCH POSTS FINAL STATE:", action.payload); // 👈 Debug
+        state.posts = Array.isArray(action.payload)
+          ? action.payload
+          : action.payload.posts || []; // 👈 safeguard
       })
       .addCase(fetchPosts.rejected, (state, action) => {
         state.status = "failed";
@@ -59,6 +61,7 @@ const postSlice = createSlice({
       })
       // ✅ createPost
       .addCase(createPost.fulfilled, (state, action) => {
+        console.log("NEW POST ADDED TO STATE:", action.payload); // 👈 Debug
         if (action.payload) {
           state.posts.unshift(action.payload);
         }
@@ -67,5 +70,4 @@ const postSlice = createSlice({
 });
 
 export default postSlice.reducer;
-
 

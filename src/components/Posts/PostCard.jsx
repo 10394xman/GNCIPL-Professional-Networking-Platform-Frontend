@@ -1,3 +1,4 @@
+// src/components/Posts/PostCard.jsx
 import React from "react";
 
 const PostCard = ({ post }) => {
@@ -6,24 +7,28 @@ const PostCard = ({ post }) => {
       {/* User Info */}
       <div className="flex items-center mb-3">
         <img
-          src={post.userAvatar || "https://i.pravatar.cc/50"}
-          alt={post.userName || "User"}
+          src={
+            post.postedBy?.profilePic ||
+            `https://i.pravatar.cc/50?u=${post.postedBy?._id || "default"}`
+          }
+          alt={post.postedBy?.name || "User"}
           className="w-10 h-10 rounded-full mr-3 border border-gray-600"
         />
         <div>
-          <h3 className="font-semibold text-white">{post.userName || "Unknown User"}</h3>
-          <p className="text-gray-400 text-sm">{post.time || "Just now"}</p>
+          <h3 className="font-semibold text-white">
+            {post.postedBy?.name || "You"}
+          </h3>
+          <p className="text-gray-400 text-sm">
+            {new Date(post.createdAt).toLocaleString()}
+          </p>
         </div>
       </div>
 
       {/* Post Content */}
-      <p className="text-gray-200 mb-3">
-        {typeof post.content === "string" ? post.content : "❌ Error loading post"}
-      </p>
-
-      {post.image && (
+      <p className="text-gray-200 mb-3">{post.content}</p>
+      {post.media && post.media.length > 0 && (
         <img
-          src={post.image}
+          src={post.media[0]}
           alt="post"
           className="rounded-lg w-full max-h-72 object-cover mb-3"
         />
@@ -40,4 +45,5 @@ const PostCard = ({ post }) => {
 };
 
 export default PostCard;
+
 

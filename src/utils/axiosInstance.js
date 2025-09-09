@@ -1,9 +1,9 @@
+// src/utils/axiosInstance.js
 import axios from "axios";
 
-// ✅ Proxy use kar rahe hain (vite.config.js me set hoga)
 const axiosInstance = axios.create({
-  baseURL: "/api",   // direct /api call → proxy backend pe bhej dega
-  withCredentials: true, // cookies forward hongi
+  baseURL: "/api",      // use vite proxy or set VITE_BACKEND_URL
+  withCredentials: true // important: send HTTP-only cookie
 });
 
 export default axiosInstance;
