@@ -7,6 +7,7 @@ import ForgotPassword from "./components/Auth/ForgotPassword";
 import ResetPassword from "./components/Auth/ResetPassword";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import Dashboard from "./components/pages/Dashboard";
+import JobsPage from "./components/pages/JobsPage";
 
 function App() {
   return (
@@ -18,12 +19,21 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
-        {/* Protected Route */}
+        {/* Protected Routes */}
         <Route
           path="/dashboard"
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/jobs"
+          element={
+            <ProtectedRoute>
+              <JobsPage />
             </ProtectedRoute>
           }
         />

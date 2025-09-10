@@ -12,6 +12,7 @@ const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [role, setRole] = useState("user"); // default Candidate
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -29,6 +30,7 @@ const Signup = () => {
         name,
         email,
         password,
+        role, 
       });
 
       dispatch(loginSuccess(res.data));
@@ -48,6 +50,7 @@ const Signup = () => {
       </div>
       <div className="bg-black/20 p-8 rounded-2xl w-full max-w-sm">
         <form onSubmit={handleSignup} className="space-y-6">
+          {/* Name */}
           <input
             type="text"
             placeholder="Name"
@@ -56,6 +59,8 @@ const Signup = () => {
             className="w-full px-6 py-4 bg-white text-gray-800 rounded-full border-2 border-transparent focus:border-blue-500 focus:outline-none placeholder-gray-500"
             required
           />
+
+          {/* Email */}
           <input
             type="email"
             placeholder="Email"
@@ -64,6 +69,8 @@ const Signup = () => {
             className="w-full px-6 py-4 bg-white text-gray-800 rounded-full border-2 border-transparent focus:border-blue-500 focus:outline-none placeholder-gray-500"
             required
           />
+
+          {/* Password */}
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
@@ -81,6 +88,8 @@ const Signup = () => {
               {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
             </button>
           </div>
+
+          {/* Confirm Password */}
           <div className="relative">
             <input
               type={showConfirmPassword ? "text" : "password"}
@@ -98,6 +107,32 @@ const Signup = () => {
               {showConfirmPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
             </button>
           </div>
+
+          {/* Role Selection */}
+          <div className="flex justify-around text-gray-300">
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="role"
+                value="user"
+                checked={role === "user"}
+                onChange={(e) => setRole(e.target.value)}
+              />
+              Candidate
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="role"
+                value="recruiter"
+                checked={role === "recruiter"}
+                onChange={(e) => setRole(e.target.value)}
+              />
+              Recruiter
+            </label>
+          </div>
+
+          {/* Submit */}
           <button
             type="submit"
             className="w-full py-4 bg-[#4285F4] text-white font-semibold rounded-full shadow-lg hover:bg-[#357AE8] transition-colors"

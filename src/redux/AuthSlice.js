@@ -1,7 +1,19 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+// ✅ Safe localStorage parse
+let savedUser = null;
+try {
+  const userData = localStorage.getItem("user");
+  if (userData && userData !== "undefined") {
+    savedUser = JSON.parse(userData);
+  }
+} catch (error) {
+  console.error("Error parsing user from localStorage:", error);
+  savedUser = null;
+}
+
 const initialState = {
-  user: null,
+  user: savedUser,
   token: localStorage.getItem("token") || null, // ✅ refresh ke baad bhi token rahe
   status: "idle",
 };
@@ -11,7 +23,7 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     loginSuccess: (state, action) => {
-      state.user = action.payload.user;
+      state.user = action.payload.user; // ✅ backend user object (role included)
       state.token = action.payload.token;
       state.status = "success";
 
@@ -36,3 +48,4 @@ const authSlice = createSlice({
 
 export const { loginSuccess, logout, setLoading } = authSlice.actions;
 export default authSlice.reducer;
+

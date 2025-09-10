@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../../redux/AuthSlice";
-import { Link, useNavigate } from "react-router-dom"; // ✅ navigate import
+import { Link, useNavigate } from "react-router-dom"; 
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import axiosInstance from "../../utils/axiosInstance";
 import GoogleAuthButton from "./GoogleAuthButton";
 
 const Login = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate(); // ✅ hook for redirection
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
 
   // form fields
@@ -20,13 +20,21 @@ const Login = () => {
     e.preventDefault();
     try {
       const res = await axiosInstance.post("/auth/login", { email, password });
+
+      // Redux me user data + token store karna
       dispatch(loginSuccess(res.data));
 
       alert("Login Successful!");
-      navigate("/dashboard"); // ✅ redirect to dashboard
+
+      // user.role ke hisaab se redirect
+      if (res.data?.user?.role === "recruiter") {
+        navigate("/recruiter-dashboard"); 
+      } else {
+        navigate("/dashboard"); 
+      }
     } catch (err) {
       console.error("Login Error:", err.response?.data || err.message);
-      alert("Login failed!");
+      alert(err.response?.data?.message || "Login failed!");
     }
   };
 
