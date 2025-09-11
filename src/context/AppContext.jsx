@@ -115,54 +115,13 @@ const initialState = {
   
   // Messages
   messages: [
-    // Mock conversation between currentUser (id: 0) and user 2 (Michael Chen)
     {
       id: 1,
       senderId: 2,
       receiverId: 0,
-      content: "Hey! I saw your recent post about the new project. Looks really interesting!",
-      timestamp: new Date(Date.now() - 3600000).toISOString(),
-      status: 'read',
-      type: 'text'
-    },
-    {
-      id: 2,
-      senderId: 0,
-      receiverId: 2,
-      content: "Thanks! I'm really excited about it. The team has been working hard to make it happen.",
-      timestamp: new Date(Date.now() - 3000000).toISOString(),
-      status: 'read',
-      type: 'text'
-    },
-    {
-      id: 3,
-      senderId: 2,
-      receiverId: 0,
-      content: "Would love to learn more about it. Are you free for a quick call this week?",
-      timestamp: new Date(Date.now() - 1800000).toISOString(),
-      status: 'read',
-      type: 'text'
-    },
-    {
-      id: 4,
-      senderId: 0,
-      receiverId: 2,
-      content: "Absolutely! How about Wednesday afternoon? I can share some insights about our development process.",
-      timestamp: new Date(Date.now() - 900000).toISOString(),
-      status: 'delivered',
-      type: 'text'
-    },
-    {
-      id: 5,
-      senderId: 2,
-      receiverId: 0,
-      content: "Perfect! Looking forward to it. By the way, here's a document that might be relevant to our discussion.",
-      timestamp: new Date(Date.now() - 600000).toISOString(),
-      status: 'read',
-      type: 'file',
-      fileName: 'project-overview.pdf',
-      fileSize: 2048576, // 2MB
-      fileUrl: '#'
+      content: "Hey! Saw your post about the AI feature. Would love to connect and discuss potential collaboration opportunities.",
+      timestamp: "10:30 AM",
+      read: false
     }
   ],
   
