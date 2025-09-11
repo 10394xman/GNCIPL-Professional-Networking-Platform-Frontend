@@ -1,0 +1,113 @@
+import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import { loginSuccess } from "../../redux/AuthSlice";
+import { Link, useNavigate } from "react-router-dom"; // ✅ navigate import
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import axiosInstance from "../../utils/axiosInstance";
+import GoogleAuthButton from "./GoogleAuthButton";
+
+const Login = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate(); // ✅ hook for redirection
+  const [showPassword, setShowPassword] = useState(false);
+
+  // form fields
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  // 👇 Login handler with backend API
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axiosInstance.post("/auth/login", { email, password });
+      dispatch(loginSuccess(res.data));
+
+      alert("Login Successful!");
+      navigate("/dashboard"); // ✅ redirect to dashboard
+    } catch (err) {
+      console.error("Login Error:", err.response?.data || err.message);
+      alert("Login failed!");
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center h-screen bg-[#0B1530] text-white p-4">
+      {/* Logo Section */}
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold">Connect</h1>
+        <p className="text-lg text-gray-400">Your World, Connected</p>
+      </div>
+
+      {/* Login Box */}
+      <div className="bg-black/20 p-8 rounded-2xl w-full max-w-sm">
+        <form onSubmit={handleLogin} className="space-y-6">
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-6 py-4 bg-white text-gray-800 rounded-full border-2 border-transparent focus:border-blue-500 focus:outline-none placeholder-gray-500"
+            required
+          />
+
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-6 py-4 bg-white text-gray-800 rounded-full focus:border-blue-500 focus:outline-none placeholder-gray-500"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-4 flex items-center text-gray-500"
+            >
+              {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
+            </button>
+          </div>
+
+          <div className="flex justify-between items-center text-sm">
+            <label className="flex items-center text-gray-400">
+              <input
+                type="checkbox"
+                className="form-checkbox text-blue-500 rounded-full mr-2"
+              />
+              Remember Me
+            </label>
+            <Link
+              to="/forgot-password"
+              className="text-gray-400 hover:text-blue-500 transition-colors"
+            >
+              Forgot Password?
+            </Link>
+          </div>
+
+          <button
+            type="submit"
+            className="w-full py-4 bg-[#4285F4] text-white font-semibold rounded-full shadow-lg hover:bg-[#357AE8] transition-colors"
+          >
+            Log In
+          </button>
+        </form>
+
+        {/* Divider + Google Button */}
+        <div className="my-4 text-center text-gray-400">OR</div>
+        <GoogleAuthButton />
+      </div>
+
+      {/* Signup Link */}
+      <div className="mt-6 text-center">
+        <p className="text-gray-400">
+          Don't have an account?{" "}
+          <Link to="/signup" className="text-blue-400 hover:underline">
+            Sign Up
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default Login;

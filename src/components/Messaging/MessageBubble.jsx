@@ -1,11 +1,11 @@
 // src/components/Messaging/MessageBubble.jsx
 import React, { useState } from 'react';
-import api from '../../api/axios';
 import { 
   Check, CheckCheck, Clock, AlertCircle, Download, 
   Play, Pause, MoreVertical, Reply, Copy, Delete,
   Heart, ThumbsUp, Smile, Eye, File, Image as ImageIcon
 } from 'lucide-react';
+import axiosInstance from "../../utils/axiosInstance";
 
 /**
  * MessageBubble Component
@@ -37,13 +37,20 @@ import {
  */
 function MessageBubble({ 
   message, 
-  isCurrentUser, 
+  isCurrentUser: isCurrentUserProp, 
   showAvatar, 
   showTimestamp, 
   user, 
   onReaction, 
-  onDelete
+  onDelete,
+  currentUser
 }) {
+  // Determine isCurrentUser if not passed, fallback to prop for backward compatibility
+  let isCurrentUser = isCurrentUserProp;
+  if (typeof isCurrentUser === 'undefined' && currentUser) {
+    const senderId = message.senderId || message.userId;
+    isCurrentUser = String(senderId) === String(currentUser._id || currentUser.id);
+  }
   const [showReactions, setShowReactions] = useState(false);
   const [showActions, setShowActions] = useState(false);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
@@ -90,19 +97,14 @@ function MessageBubble({
   const handleMessageAction = async (action) => {
     switch (action) {
       case 'copy':
-        navigator.clipboard.writeText(message.content);
+        navigator.clipboard.writeText(message.content || message.text || '');
         break;
       case 'reply':
         console.log('Reply to message:', message._id || message.id);
         break;
       case 'delete':
         if (onDelete && confirm('Delete this message?')) {
-          try {
-            await api.delete(`/api/messages/${message._id || message.id}`);
-            onDelete();
-          } catch (err) {
-            alert('Failed to delete message.');
-          }
+          onDelete();
         }
         break;
       case 'forward':
@@ -226,7 +228,7 @@ function MessageBubble({
         return (
           <div className="prose prose-sm max-w-none">
             <p className="whitespace-pre-wrap break-words leading-relaxed m-0">
-              {message.content}
+              {message.content || message.text || ''}
             </p>
           </div>
         );
@@ -314,19 +316,16 @@ function MessageBubble({
         <div className={`flex items-center mt-1 space-x-2 text-xs text-gray-500 ${
           isCurrentUser ? 'justify-end' : 'justify-start'
         }`}>
-          
           {/* Timestamp */}
           {showTimestamp && (
             <span>{formatMessageTime(message.timestamp)}</span>
           )}
-          
           {/* Status (for sent messages) */}
           {isCurrentUser && (
             <div className="flex items-center">
               {getStatusIcon(message.status)}
             </div>
           )}
-          
           {/* Read by indicator */}
           {isCurrentUser && message.status === 'read' && (
             <div className="flex items-center space-x-1">

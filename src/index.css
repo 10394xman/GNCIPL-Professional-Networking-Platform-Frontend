@@ -1,6 +1,7 @@
 /* Import Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
+
 /* Tailwind Directives */
 @tailwind base;
 @tailwind components;
@@ -85,7 +86,7 @@
   }
 
   .input-field-error {
-    @apply input-field border-red-500 focus:ring-red-500;
+    @apply w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-200 border-red-500 focus:ring-red-500;
   }
 
   /* Custom Card Components */

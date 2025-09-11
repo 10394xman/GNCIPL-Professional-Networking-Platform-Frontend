@@ -6,40 +6,15 @@ import {
   Check, CheckCheck, Clock, AlertCircle, Image, File
 } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
-import api from '../../api/axios';
+import axiosInstance from "../../utils/axiosInstance";
 import MessageBubble from './MessageBubble';
 
 /**
  * ChatWindow Component
  * 
  * Real-time chat interface with comprehensive messaging features
- * 
- * Features:
- * - Real-time messaging with Socket.io simulation
- * - Message status indicators (sent, delivered, read)
- * - File upload and media sharing
- * - Emoji picker integration
- * - Typing indicators
- * - Message reactions
- * - Voice notes (future)
- * - Message search and filtering
- * - Responsive design
- * 
- * Security Features:
- * - Message encryption ready
- * - Content sanitization
- * - File type validation
- * - Rate limiting protection
- * - Blocked user handling
- * 
- * Props:
- * - conversation: User object for current conversation
- * - isTyping: Boolean indicating if user is typing
- * - setIsTyping: Function to set typing status
- * - onBack: Function for mobile back navigation
- * - isOnline: Boolean indicating if user is online
  */
-function ChatWindow({ conversation, isTyping, setIsTyping, onBack, isOnline }) {
+function ChatWindow({ conversation, isTyping, setIsTyping, onBack, isOnline, currentUser }) {
   const { state } = useAppContext();
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
@@ -55,20 +30,57 @@ function ChatWindow({ conversation, isTyping, setIsTyping, onBack, isOnline }) {
   const typingTimeoutRef = useRef(null);
   const messageInputRef = useRef(null);
 
+  // Helper function to normalize user ID comparison
+  const normalizeUserId = (id) => {
+    return id ? String(id) : '';
+  };
+
+  // Helper function to get current user ID
+  const getCurrentUserId = () => {
+    return normalizeUserId(currentUser?._id || currentUser?.id);
+  };
+
+  // Helper function to determine if message is from current user
+  const isMessageFromCurrentUser = (message) => {
+    const messageSenderId = normalizeUserId(message.senderId || message.userId || message.sender?._id || message.sender?.id);
+    const currentUserId = getCurrentUserId();
+    return messageSenderId === currentUserId && currentUserId !== '';
+  };
+
   /**
    * Fetch messages for the selected user from backend
    */
   useEffect(() => {
     setMessages([]);
-    if (!conversation?.id) return;
-    api.get(`/api/messages/${conversation._id}`)
+    if (!conversation?._id) return;
+    
+    axiosInstance.get(`/messages/${conversation._id}`)
       .then(res => {
-        setMessages(res.data || []);
+        const fetchedMessages = res.data.allMessages || [];
+        console.log('Fetched messages:', fetchedMessages);
+        console.log('Current user:', currentUser);
+        
+        // Normalize message structure and add missing status
+        const normalizedMessages = fetchedMessages.map(msg => ({
+          ...msg,
+          // Ensure consistent sender identification
+          senderId: msg.senderId || msg.userId || msg.sender?._id || msg.sender?.id,
+          // Add status if missing (for existing messages, assume 'read')
+          status: msg.status || 'read',
+          // Ensure content field
+          content: msg.content || msg.text || '',
+          // Ensure timestamp
+          timestamp: msg.timestamp || msg.createdAt || new Date().toISOString()
+        }));
+        
+        console.log('Normalized messages:', normalizedMessages);
+        setMessages(normalizedMessages);
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error('Error fetching messages:', error);
         setMessages([]);
       });
-  }, [conversation._id]);
+  }, [conversation?._id, currentUser]);
 
   /**
    * Scroll to bottom of messages
@@ -80,6 +92,32 @@ function ChatWindow({ conversation, isTyping, setIsTyping, onBack, isOnline }) {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  /**
+   * Simulate message status progression
+   */
+  const simulateMessageStatusProgression = (tempId) => {
+    // Sent status (immediate)
+    setTimeout(() => {
+      setMessages(prev => prev.map(m => 
+        m.tempId === tempId ? { ...m, status: 'sent' } : m
+      ));
+    }, 500);
+
+    // Delivered status
+    setTimeout(() => {
+      setMessages(prev => prev.map(m => 
+        m.tempId === tempId ? { ...m, status: 'delivered' } : m
+      ));
+    }, 1500);
+
+    // Read status
+    setTimeout(() => {
+      setMessages(prev => prev.map(m => 
+        m.tempId === tempId ? { ...m, status: 'read' } : m
+      ));
+    }, 3000);
+  };
 
   /**
    * Simulate other user typing
@@ -96,42 +134,90 @@ function ChatWindow({ conversation, isTyping, setIsTyping, onBack, isOnline }) {
     return () => clearInterval(interval);
   }, [otherUserTyping]);
 
+  // Helper to convert file to base64
+  const fileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   /**
    * Handle message submission
-   * @param {Event} e - Form submit event
    */
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (message.trim() && !isUploading) {
       // Sanitize message content
       const sanitizedMessage = message.replace(/[<>]/g, '').trim();
-      const tempId = Date.now();
+      const tempId = `temp_${Date.now()}_${Math.random()}`;
+      const currentUserId = getCurrentUserId();
+      
+      // Create optimistic message
       const optimisticMsg = {
-        senderId: state.currentUser.id,
+        tempId,
+        _id: tempId, // Fallback ID
+        senderId: currentUserId,
         content: sanitizedMessage,
+        text: sanitizedMessage, // Fallback field
         timestamp: new Date().toISOString(),
         status: 'sending',
         type: 'text'
       };
-      setMessages(prev => [...prev, optimisticMsg]);
+
+      console.log('Sending optimistic message:', optimisticMsg);
+      
+      setMessages(prev => {
+        const newMessages = Array.isArray(prev) ? [...prev, optimisticMsg] : [optimisticMsg];
+        console.log('Updated messages with optimistic:', newMessages);
+        return newMessages;
+      });
+      
       setMessage('');
       setIsTyping(false);
 
       // Focus back to input
       messageInputRef.current?.focus();
+
       try {
-        const res = await api.post(`/api/messages/${conversation._id}`, { content: sanitizedMessage });
-        // Replace optimistic message with real one from backend
-        setMessages(prev => prev.map(m => m._id === tempId ? res.data : m));
+        const response = await axiosInstance.post(`/messages/${conversation._id}`, {
+          text: sanitizedMessage
+        });
+
+        console.log('Backend response:', response.data);
+
+        if (response.data) {
+          // Replace optimistic message with real one from backend
+          setMessages(prev => prev.map(m => {
+            if (m.tempId === tempId) {
+              return {
+                ...response.data,
+                senderId: response.data.senderId || response.data.userId || currentUserId,
+                status: response.data.status || 'sent',
+                content: response.data.content || response.data.text || sanitizedMessage,
+                tempId: undefined // Remove temp ID
+              };
+            }
+            return m;
+          }));
+
+          // Start status progression simulation
+          simulateMessageStatusProgression(response.data._id || response.data.id);
+        }
       } catch (err) {
-        setMessages(prev => prev.map(m => m._id === tempId ? { ...m, status: 'failed' } : m));
+        console.error('Error sending message:', err);
+        // Mark message as failed
+        setMessages(prev => prev.map(m => 
+          m.tempId === tempId ? { ...m, status: 'failed' } : m
+        ));
       }
     }
   };
 
   /**
    * Handle typing with debounce
-   * @param {Event} e - Input change event
    */
   const handleMessageChange = (e) => {
     const value = e.target.value;
@@ -155,9 +241,8 @@ function ChatWindow({ conversation, isTyping, setIsTyping, onBack, isOnline }) {
 
   /**
    * Handle file upload
-   * @param {Event} e - File input change event
    */
-  const handleFileUpload = (e) => {
+  const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
       // Validate file type and size
@@ -179,39 +264,50 @@ function ChatWindow({ conversation, isTyping, setIsTyping, onBack, isOnline }) {
       }
 
       setIsUploading(true);
+      const tempId = `temp_file_${Date.now()}_${Math.random()}`;
+      const currentUserId = getCurrentUserId();
+      
+      const optimisticMsg = {
+        _id: tempId,
+        tempId,
+        senderId: currentUserId,
+        content: `Shared: ${file.name}`,
+        timestamp: new Date().toISOString(),
+        status: 'sending',
+        type: file.type.startsWith('image/') ? 'image' : 'file',
+        fileName: file.name,
+        fileSize: file.size
+      };
+      
+      setMessages(prev => [...prev, optimisticMsg]);
 
-      // Simulate file upload progress
-      let progress = 0;
-      const uploadInterval = setInterval(() => {
-        progress += Math.random() * 30;
-        if (progress >= 100) {
-          clearInterval(uploadInterval);
-          
-          const fileMessage = {
-            id: Date.now(),
-            senderId: state.currentUser.id,
-            content: `Shared: ${file.name}`,
-            timestamp: new Date().toISOString(),
-            status: 'sent',
-            type: file.type.startsWith('image/') ? 'image' : 'file',
-            fileUrl: URL.createObjectURL(file),
-            fileName: file.name,
-            fileSize: file.size
-          };
-
-          setMessages(prev => [...prev, fileMessage]);
-          setIsUploading(false);
-        }
-      }, 200);
+      try {
+        const base64 = await fileToBase64(file);
+        const res = await axiosInstance.post(`/messages/${conversation._id}`, {
+          text: '',
+          file: base64
+        });
+        setMessages(prev => prev.map(m => 
+          m.tempId === tempId ? {
+            ...res.data,
+            senderId: res.data.senderId || currentUserId,
+            status: 'sent'
+          } : m
+        ));
+      } catch (err) {
+        console.error('Error uploading file:', err);
+        setMessages(prev => prev.map(m => 
+          m.tempId === tempId ? { ...m, status: 'failed' } : m
+        ));
+      }
+      setIsUploading(false);
     }
-    
     // Clear the input
     e.target.value = '';
   };
 
   /**
    * Handle emoji selection
-   * @param {string} emoji - Selected emoji
    */
   const handleEmojiSelect = (emoji) => {
     setMessage(prev => prev + emoji);
@@ -221,7 +317,6 @@ function ChatWindow({ conversation, isTyping, setIsTyping, onBack, isOnline }) {
 
   /**
    * Handle option actions
-   * @param {string} action - Action type
    */
   const handleOptionAction = (action) => {
     setShowOptions(false);
@@ -263,7 +358,7 @@ function ChatWindow({ conversation, isTyping, setIsTyping, onBack, isOnline }) {
     '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣',
     '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬',
     '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗',
-    '👍', '👎', '👌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈',
+    '👍', '👎', '👌', '🤝', '✌️', '🤞', '🤟', '🤘', '🤙', '👈',
     '👉', '👆', '🖕', '👇', '☝️', '👏', '🙌', '👐', '🤲', '🤝',
     '🙏', '💪', '🦵', '🦶', '👂', '🦻', '👃', '🧠', '🦷', '🦴',
     '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔',
@@ -271,21 +366,7 @@ function ChatWindow({ conversation, isTyping, setIsTyping, onBack, isOnline }) {
   ];
 
   /**
-   * Format timestamp for display
-   * @param {string} timestamp - ISO timestamp
-   * @returns {string} Formatted time
-   */
-  // const formatTime = (timestamp) => {
-  //   return new Date(timestamp).toLocaleTimeString('en-US', {
-  //     hour: 'numeric',
-  //     minute: '2-digit',
-  //     hour12: true
-  //   });
-  // };
-
-  /**
    * Get last seen status
-   * @returns {string} Last seen text
    */
   const getLastSeen = () => {
     if (isOnline) return 'Active now';
@@ -338,7 +419,7 @@ function ChatWindow({ conversation, isTyping, setIsTyping, onBack, isOnline }) {
     <div className="flex flex-col h-full bg-white">
       
       {/* Chat Header */}
-  <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white shadow-sm relative z-30">
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white shadow-sm relative z-30">
         <div className="flex items-center space-x-3">
           
           {/* Mobile Back Button */}
@@ -497,33 +578,76 @@ function ChatWindow({ conversation, isTyping, setIsTyping, onBack, isOnline }) {
         </div>
         
         {/* Messages */}
-        {messages.map((msg, index) => {
-          const isCurrentUser = msg.senderId === state.currentUser.id;
-          const showAvatar = !isCurrentUser && (index === 0 || messages[index - 1].senderId !== msg.senderId);
-          const showTimestamp = index === messages.length - 1 || messages[index + 1].senderId !== msg.senderId;
+        {(Array.isArray(messages) ? messages : []).map((msg, index) => {
+          // Determine if message is from current user
+          const isCurrentUserMessage = isMessageFromCurrentUser(msg);
+          const senderId = msg.senderId || msg.userId || msg.sender?._id || msg.sender?.id;
+          
+          // Debug logging
+          console.log(`Message ${index}:`, {
+            msg,
+            senderId,
+            currentUserId: getCurrentUserId(),
+            isCurrentUserMessage
+          });
+          
+          // Determine avatar and timestamp display logic
+          const showAvatar = !isCurrentUserMessage && (
+            index === 0 || 
+            !isMessageFromCurrentUser(messages[index - 1])
+          );
+          
+          const showTimestamp = (
+            index === messages.length - 1 || 
+            isMessageFromCurrentUser(messages[index + 1]) !== isCurrentUserMessage
+          );
+          
           return (
             <MessageBubble
-              key={msg.id}
+              key={msg._id || msg.id || msg.tempId || index}
               message={msg}
-              isCurrentUser={isCurrentUser}
+              isCurrentUser={isCurrentUserMessage}
               showAvatar={showAvatar}
               showTimestamp={showTimestamp}
-              user={isCurrentUser ? state.currentUser : conversation}
+              user={isCurrentUserMessage ? currentUser : conversation}
+              currentUser={currentUser}
               onReaction={(emoji) => {
+                const messageId = msg._id || msg.id || msg.tempId;
                 setMessages(prevMsgs => prevMsgs.map(m => {
-                  if (m.id !== msg.id) return m;
-                  // Add or update reaction count for emoji
+                  const mId = m._id || m.id || m.tempId;
+                  if (mId !== messageId) return m;
+                  
                   let reactions = Array.isArray(m.reactions) ? [...m.reactions] : [];
-                  const idx = reactions.findIndex(r => r.emoji === emoji);
-                  if (idx !== -1) {
-                    reactions[idx] = { ...reactions[idx], count: reactions[idx].count + 1 };
+                  const existingReactionIndex = reactions.findIndex(r => r.emoji === emoji);
+                  
+                  if (existingReactionIndex !== -1) {
+                    reactions[existingReactionIndex] = { 
+                      ...reactions[existingReactionIndex], 
+                      count: reactions[existingReactionIndex].count + 1 
+                    };
                   } else {
                     reactions.push({ emoji, count: 1 });
                   }
+                  
                   return { ...m, reactions };
                 }));
               }}
-              onDelete={isCurrentUser ? () => setMessages(prev => prev.filter(m => m.id !== msg.id)) : undefined}
+              onDelete={isCurrentUserMessage ? async () => {
+                const messageId = msg._id || msg.id;
+                if (!messageId) return;
+                
+                if (confirm('Delete this message?')) {
+                  try {
+                    await axiosInstance.delete(`/messages/${messageId}`);
+                    setMessages(prev => prev.filter(m => 
+                      (m._id || m.id || m.tempId) !== (msg._id || msg.id || msg.tempId)
+                    ));
+                  } catch (err) {
+                    console.error('Failed to delete message:', err);
+                    alert('Failed to delete message.');
+                  }
+                }
+              } : undefined}
             />
           );
         })}
