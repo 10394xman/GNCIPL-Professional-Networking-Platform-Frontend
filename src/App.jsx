@@ -7,7 +7,8 @@ import ForgotPassword from "./components/Auth/ForgotPassword";
 import ResetPassword from "./components/Auth/ResetPassword";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import Dashboard from "./components/pages/Dashboard";
-import JobsPage from "./components/pages/JobsPage";
+import JobPage from "./components/pages/JobsPage";   // ✅ corrected filename
+import CreateJob from "./components/pages/CreateJob"; // ✅ new route for recruiter
 
 function App() {
   return (
@@ -29,11 +30,22 @@ function App() {
           }
         />
 
+        {/* Jobs list page */}
         <Route
           path="/jobs"
           element={
             <ProtectedRoute>
-              <JobsPage />
+              <JobPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Recruiter create job page */}
+        <Route
+          path="/jobs/create"
+          element={
+            <ProtectedRoute>
+              <CreateJob />
             </ProtectedRoute>
           }
         />
