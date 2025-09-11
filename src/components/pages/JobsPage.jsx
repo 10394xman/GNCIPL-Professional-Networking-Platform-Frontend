@@ -1,21 +1,15 @@
 // src/components/pages/JobPage.jsx
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchJobs, createJob } from "../../redux/JobSlice";
+import { fetchJobs, applyJob, saveJob } from "../../redux/JobSlice";
+import { Link } from "react-router-dom";
 
 const JobPage = () => {
   const dispatch = useDispatch();
   const { jobs, status, error } = useSelector((state) => state.jobs);
-  const { user } = useSelector((state) => state.auth); // 👈 user.role check karne ke liye
+  const { user } = useSelector((state) => state.auth);
 
   const [filters, setFilters] = useState({ search: "", location: "" });
-  const [newJob, setNewJob] = useState({
-    title: "",
-    description: "",
-    company: "",
-    location: "",
-    salary: "",
-  });
 
   useEffect(() => {
     dispatch(fetchJobs());
@@ -31,26 +25,11 @@ const JobPage = () => {
       job.location.toLowerCase().includes(filters.location.toLowerCase())
   );
 
-  // ✅ Recruiter job create
-  const handleCreateJob = (e) => {
-    e.preventDefault();
-    dispatch(createJob(newJob)).then(() => {
-      dispatch(fetchJobs()); // ✅ job create hone ke baad refresh
-    });
-    setNewJob({
-      title: "",
-      description: "",
-      company: "",
-      location: "",
-      salary: "",
-    });
-  };
-
   return (
     <div className="p-6 min-h-screen bg-[#0B1530] text-white">
       <h1 className="text-3xl font-bold mb-6 text-center">Jobs</h1>
 
-      {/* ✅ Candidate + Recruiter view: Filters */}
+      {/* Filters */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <input
           type="text"
@@ -70,76 +49,26 @@ const JobPage = () => {
         />
       </div>
 
-      {/* ✅ Recruiter view: Create Job Form */}
+      {/* Recruiter "Create Job" button */}
       {user?.role === "recruiter" && (
-        <div className="bg-black/30 p-6 rounded-xl shadow-lg mb-8">
-          <h2 className="text-xl font-semibold mb-4">Post a Job</h2>
-          <form onSubmit={handleCreateJob} className="space-y-4">
-            <input
-              type="text"
-              placeholder="Job Title"
-              value={newJob.title}
-              onChange={(e) => setNewJob({ ...newJob, title: e.target.value })}
-              required
-              className="w-full p-3 rounded-lg bg-white text-gray-800 placeholder-gray-500"
-            />
-            <textarea
-              placeholder="Job Description"
-              value={newJob.description}
-              onChange={(e) =>
-                setNewJob({ ...newJob, description: e.target.value })
-              }
-              required
-              className="w-full p-3 rounded-lg bg-white text-gray-800 placeholder-gray-500"
-            />
-            <input
-              type="text"
-              placeholder="Company"
-              value={newJob.company}
-              onChange={(e) =>
-                setNewJob({ ...newJob, company: e.target.value })
-              }
-              required
-              className="w-full p-3 rounded-lg bg-white text-gray-800 placeholder-gray-500"
-            />
-            <input
-              type="text"
-              placeholder="Location"
-              value={newJob.location}
-              onChange={(e) =>
-                setNewJob({ ...newJob, location: e.target.value })
-              }
-              required
-              className="w-full p-3 rounded-lg bg-white text-gray-800 placeholder-gray-500"
-            />
-            <input
-              type="number"
-              placeholder="Salary"
-              value={newJob.salary}
-              onChange={(e) =>
-                setNewJob({ ...newJob, salary: e.target.value })
-              }
-              className="w-full p-3 rounded-lg bg-white text-gray-800 placeholder-gray-500"
-            />
-            <button
-              type="submit"
-              className="px-6 py-3 bg-[#4285F4] hover:bg-[#357AE8] rounded-lg font-semibold"
-            >
-              Create Job
-            </button>
-          </form>
+        <div className="mb-6 text-right">
+          <Link
+            to="/jobs/create"
+            className="px-6 py-3 bg-[#4285F4] hover:bg-[#357AE8] rounded-lg font-semibold"
+          >
+            + Post a Job
+          </Link>
         </div>
       )}
 
-      {/* ✅ Jobs List */}
+      {/* Jobs List */}
       <div>
         {status === "loading" && <p>Loading jobs...</p>}
         {status === "failed" && <p className="text-red-500">{error}</p>}
-
         {status === "succeeded" && filteredJobs.length === 0 && (
           <p className="text-center text-gray-400 mt-6">
             {user?.role === "recruiter"
-              ? "No jobs posted yet. Create your first job above!"
+              ? "No jobs posted yet. Click above to create your first job!"
               : "No jobs available right now."}
           </p>
         )}
@@ -157,6 +86,24 @@ const JobPage = () => {
               <p className="text-green-400 mt-2">
                 💰 {job.salary ? `₹${job.salary}` : "Not Disclosed"}
               </p>
+
+              {/* Candidate Actions */}
+              {user?.role === "user" && (
+                <div className="flex gap-4 mt-4">
+                  <button
+                    onClick={() => dispatch(applyJob(job._id))}
+                    className="px-4 py-2 bg-[#4285F4] hover:bg-[#357AE8] rounded-lg"
+                  >
+                    Apply
+                  </button>
+                  <button
+                    onClick={() => dispatch(saveJob(job._id))}
+                    className="px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg"
+                  >
+                    Save
+                  </button>
+                </div>
+              )}
             </div>
           ))}
       </div>
@@ -165,4 +112,3 @@ const JobPage = () => {
 };
 
 export default JobPage;
-

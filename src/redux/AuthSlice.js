@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-// ✅ Safe localStorage parse
+// ✅ Safe localStorage parse for user
 let savedUser = null;
 try {
   const userData = localStorage.getItem("user");
@@ -13,8 +13,8 @@ try {
 }
 
 const initialState = {
-  user: savedUser,
-  token: localStorage.getItem("token") || null, // ✅ refresh ke baad bhi token rahe
+  user: savedUser, // ✅ reload pe bhi user restore hoga
+  token: localStorage.getItem("token") || null, // ✅ token persist
   status: "idle",
 };
 
@@ -28,17 +28,25 @@ const authSlice = createSlice({
       state.status = "success";
 
       // ✅ Save token + user in localStorage
-      localStorage.setItem("token", action.payload.token);
-      localStorage.setItem("user", JSON.stringify(action.payload.user));
+      try {
+        localStorage.setItem("token", action.payload.token);
+        localStorage.setItem("user", JSON.stringify(action.payload.user));
+      } catch (error) {
+        console.error("Error saving auth data:", error);
+      }
     },
     logout: (state) => {
       state.user = null;
       state.token = null;
       state.status = "idle";
 
-      // ✅ Remove token + user
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
+      // ✅ Clear localStorage
+      try {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      } catch (error) {
+        console.error("Error clearing auth data:", error);
+      }
     },
     setLoading: (state) => {
       state.status = "loading";
@@ -48,4 +56,5 @@ const authSlice = createSlice({
 
 export const { loginSuccess, logout, setLoading } = authSlice.actions;
 export default authSlice.reducer;
+
 

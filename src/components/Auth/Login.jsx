@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../../redux/AuthSlice";
-import { Link, useNavigate } from "react-router-dom"; 
+import { Link, useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import axiosInstance from "../../utils/axiosInstance";
 import GoogleAuthButton from "./GoogleAuthButton";
@@ -11,26 +11,42 @@ const Login = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
 
-  // form fields
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // 👇 Login handler with backend API
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await axiosInstance.post("/auth/login", { email, password });
+      const res = await axiosInstance.post(
+        "/auth/login",
+        { email, password },
+        { withCredentials: true }
+      );
 
-      // Redux me user data + token store karna
-      dispatch(loginSuccess(res.data));
+      console.log("LOGIN API RESPONSE:", res.data);
+
+      const payload = {
+        user: res.data.user || {
+          name: res.data.name,
+          email: res.data.email,
+          role: res.data.role,
+        },
+        token: res.data.token || res.data?.jwt, // fallback if backend uses jwt
+      };
+
+      // ✅ Save to Redux
+      dispatch(loginSuccess(payload));
+
+      // ✅ Force save in localStorage
+      if (payload.token) localStorage.setItem("token", payload.token);
+      if (payload.user) localStorage.setItem("user", JSON.stringify(payload.user));
 
       alert("Login Successful!");
 
-      // user.role ke hisaab se redirect
-      if (res.data?.user?.role === "recruiter") {
-        navigate("/recruiter-dashboard"); 
+      if (payload.user?.role === "recruiter") {
+        navigate("/recruiter-dashboard");
       } else {
-        navigate("/dashboard"); 
+        navigate("/dashboard");
       }
     } catch (err) {
       console.error("Login Error:", err.response?.data || err.message);
@@ -40,13 +56,11 @@ const Login = () => {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-[#0B1530] text-white p-4">
-      {/* Logo Section */}
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold">Connect</h1>
         <p className="text-lg text-gray-400">Your World, Connected</p>
       </div>
 
-      {/* Login Box */}
       <div className="bg-black/20 p-8 rounded-2xl w-full max-w-sm">
         <form onSubmit={handleLogin} className="space-y-6">
           <input
@@ -78,34 +92,23 @@ const Login = () => {
 
           <div className="flex justify-between items-center text-sm">
             <label className="flex items-center text-gray-400">
-              <input
-                type="checkbox"
-                className="form-checkbox text-blue-500 rounded-full mr-2"
-              />
+              <input type="checkbox" className="form-checkbox text-blue-500 rounded-full mr-2" />
               Remember Me
             </label>
-            <Link
-              to="/forgot-password"
-              className="text-gray-400 hover:text-blue-500 transition-colors"
-            >
+            <Link to="/forgot-password" className="text-gray-400 hover:text-blue-500 transition-colors">
               Forgot Password?
             </Link>
           </div>
 
-          <button
-            type="submit"
-            className="w-full py-4 bg-[#4285F4] text-white font-semibold rounded-full shadow-lg hover:bg-[#357AE8] transition-colors"
-          >
+          <button type="submit" className="w-full py-4 bg-[#4285F4] text-white font-semibold rounded-full shadow-lg hover:bg-[#357AE8] transition-colors">
             Log In
           </button>
         </form>
 
-        {/* Divider + Google Button */}
         <div className="my-4 text-center text-gray-400">OR</div>
         <GoogleAuthButton />
       </div>
 
-      {/* Signup Link */}
       <div className="mt-6 text-center">
         <p className="text-gray-400">
           Don't have an account?{" "}
