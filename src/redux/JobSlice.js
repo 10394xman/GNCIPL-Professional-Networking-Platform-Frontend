@@ -1,3 +1,4 @@
+// src/redux/JobSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axiosInstance from "../utils/axiosInstance";
 
@@ -112,7 +113,7 @@ export const updateApplicationStatus = createAsyncThunk(
       const token = getState().auth.token;
       const res = await axiosInstance.put(
         `/jobs/applications/${applicationId}/status`,
-        { status }, // must be pending | reviewed | accepted | rejected
+        { status }, // ✅ must be one of: pending | reviewed | accepted | rejected
         { headers: { Authorization: `Bearer ${token}` } }
       );
       return res.data.application || res.data;
@@ -127,7 +128,7 @@ const jobSlice = createSlice({
   name: "jobs",
   initialState: {
     jobs: [],
-    applications: [],
+    applications: [], // candidate applications
     savedJobs: [],
     status: "idle",
     error: null,
@@ -135,7 +136,7 @@ const jobSlice = createSlice({
     createError: null,
     applyStatus: "idle",
     saveStatus: "idle",
-    recruiterApplications: [],
+    recruiterApplications: [], // recruiter’s job applications
     recruiterStatus: "idle",
   },
   reducers: {},

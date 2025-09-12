@@ -13,14 +13,14 @@ const Login = () => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("user"); // ✅ Default role Candidate
+  const [role, setRole] = useState("user"); // ✅ Default Candidate
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
       const res = await axiosInstance.post(
         "/auth/login",
-        { email, password, role }, // ✅ Send role also
+        { email, password, role }, // ✅ role bhi bhej rahe
         { withCredentials: true }
       );
 
@@ -30,11 +30,12 @@ const Login = () => {
         user: res.data.user || {
           name: res.data.name,
           email: res.data.email,
-          role: res.data.role || role, // fallback
+          role: res.data.role || role, // fallback agar backend se na aaye
         },
         token: res.data.token || res.data?.jwt,
       };
 
+      // ✅ Save to Redux
       dispatch(loginSuccess(payload));
 
       // ✅ Save in localStorage
@@ -43,6 +44,7 @@ const Login = () => {
 
       alert("Login Successful!");
 
+      // ✅ Redirect by role
       if (payload.user?.role === "recruiter") {
         navigate("/recruiter-dashboard");
       } else {
@@ -124,7 +126,10 @@ const Login = () => {
             </Link>
           </div>
 
-          <button type="submit" className="w-full py-4 bg-[#4285F4] text-white font-semibold rounded-full shadow-lg hover:bg-[#357AE8] transition-colors">
+          <button
+            type="submit"
+            className="w-full py-4 bg-[#4285F4] text-white font-semibold rounded-full shadow-lg hover:bg-[#357AE8] transition-colors"
+          >
             Log In
           </button>
         </form>
