@@ -36,7 +36,7 @@ function App() {
             element={
               <ProtectedRoute>
                 <Header />
-                <main className="max-w-6xl mx-auto mt-8 px-4">
+                <main className="mt-8">
                   <Dashboard />
                 </main>
               </ProtectedRoute>
@@ -47,7 +47,7 @@ function App() {
             element={
               <ProtectedRoute>
                 <Header />
-                <main className="max-w-6xl mx-auto mt-8 px-4">
+                <main className="mt-8">
                   <ProfilePage />
                 </main>
               </ProtectedRoute>
@@ -59,7 +59,7 @@ function App() {
             element={
               <ProtectedRoute>
                 <Header />
-                <main className="max-w-6xl mx-auto mt-8 px-4">
+                <main className="mt-8">
                   <Dashboard />
                 </main>
               </ProtectedRoute>
@@ -70,7 +70,7 @@ function App() {
             element={
               <ProtectedRoute>
                 <Header />
-                <main className="max-w-6xl mx-auto mt-8 px-4">
+                <main className="mt-8">
                   <MessagingPage />
                 </main>
               </ProtectedRoute>
