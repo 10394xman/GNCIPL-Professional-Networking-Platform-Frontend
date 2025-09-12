@@ -1,44 +1,70 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../../redux/AuthSlice";
-import { Link, useNavigate } from "react-router-dom"; // ✅ navigate import
+import { Link, useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+
 import axiosInstance from "../../utils/axiosInstance";
 import GoogleAuthButton from "./GoogleAuthButton";
-
+import { auth } from "../Messages/authWrapper";
 const Login = () => {
+  const { setUserDetails, connectToSocket } = auth();
   const dispatch = useDispatch();
-  const navigate = useNavigate(); // ✅ hook for redirection
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
 
-  // form fields
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // 👇 Login handler with backend API
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await axiosInstance.post("/auth/login", { email, password });
-      dispatch(loginSuccess(res.data));
+      const res = await axiosInstance.post(
+        "/auth/login",
+        { email, password },
+        { withCredentials: true }
+      );
+
+      console.log("LOGIN API RESPONSE:", res.data);
+
+      const payload = {
+        user: res.data.user || {
+          name: res.data.name,
+          email: res.data.email,
+          role: res.data.role,
+        },
+        token: res.data.token || res.data?.jwt, // fallback if backend uses jwt
+      };
+
+      // ✅ Save to Redux
+      dispatch(loginSuccess(payload));
+      setUserDetails(res.data);
+      connectToSocket(res.data._id)
+      // ✅ Force save in localStorage
+      if (payload.token) localStorage.setItem("token", payload.token);
+      if (payload.user)
+        localStorage.setItem("user", JSON.stringify(payload.user));
 
       alert("Login Successful!");
-      navigate("/dashboard"); // ✅ redirect to dashboard
+
+      if (payload.user?.role === "recruiter") {
+        navigate("/recruiter-dashboard");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (err) {
       console.error("Login Error:", err.response?.data || err.message);
-      alert("Login failed!");
+      alert(err.response?.data?.message || "Login failed!");
     }
   };
 
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-[#0B1530] text-white p-4">
-      {/* Logo Section */}
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold">Connect</h1>
         <p className="text-lg text-gray-400">Your World, Connected</p>
       </div>
 
-      {/* Login Box */}
       <div className="bg-black/20 p-8 rounded-2xl w-full max-w-sm">
         <form onSubmit={handleLogin} className="space-y-6">
           <input
@@ -92,12 +118,10 @@ const Login = () => {
           </button>
         </form>
 
-        {/* Divider + Google Button */}
         <div className="my-4 text-center text-gray-400">OR</div>
         <GoogleAuthButton />
       </div>
 
-      {/* Signup Link */}
       <div className="mt-6 text-center">
         <p className="text-gray-400">
           Don't have an account?{" "}

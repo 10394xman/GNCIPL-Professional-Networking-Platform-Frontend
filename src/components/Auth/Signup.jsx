@@ -3,15 +3,18 @@ import { Link, useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../../redux/AuthSlice";
-import axiosInstance from "../../utils/axiosInstance"; // centralized axios
+import axiosInstance from "../../utils/axiosInstance";
+import { auth } from "../Messages/authWrapper";
 
 const Signup = () => {
+  const {setUserDetails} = auth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [role, setRole] = useState("user");
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -25,13 +28,29 @@ const Signup = () => {
     }
 
     try {
-      const res = await axiosInstance.post("/auth/register", {
-        name,
-        email,
-        password,
-      });
+      const res = await axiosInstance.post(
+        "/auth/register",
+        { name, email, password, role },
+        { withCredentials: true }
+      );
 
-      dispatch(loginSuccess(res.data));
+      console.log("SIGNUP API RESPONSE:", res.data);
+
+      const payload = {
+        user: res.data.user || {
+          name: res.data.name,
+          email: res.data.email,
+          role: res.data.role,
+        },
+        token: res.data.token || res.data?.jwt,
+      };
+
+      dispatch(loginSuccess(payload));
+      setUserDetails(res.data)
+      // ✅ Force save in localStorage
+      if (payload.token) localStorage.setItem("token", payload.token);
+      if (payload.user) localStorage.setItem("user", JSON.stringify(payload.user));
+
       alert("Signup successful!");
       navigate("/dashboard");
     } catch (err) {
@@ -56,6 +75,7 @@ const Signup = () => {
             className="w-full px-6 py-4 bg-white text-gray-800 rounded-full border-2 border-transparent focus:border-blue-500 focus:outline-none placeholder-gray-500"
             required
           />
+
           <input
             type="email"
             placeholder="Email"
@@ -64,23 +84,21 @@ const Signup = () => {
             className="w-full px-6 py-4 bg-white text-gray-800 rounded-full border-2 border-transparent focus:border-blue-500 focus:outline-none placeholder-gray-500"
             required
           />
+
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
-              placeholder="Password"
+              placeholder="Password (min 6 chars)"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-6 py-4 bg-white text-gray-800 rounded-full focus:border-blue-500 focus:outline-none placeholder-gray-500"
               required
             />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-4 flex items-center text-gray-500"
-            >
+            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-4 flex items-center text-gray-500">
               {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
             </button>
           </div>
+
           <div className="relative">
             <input
               type={showConfirmPassword ? "text" : "password"}
@@ -90,18 +108,23 @@ const Signup = () => {
               className="w-full px-6 py-4 bg-white text-gray-800 rounded-full focus:border-blue-500 focus:outline-none placeholder-gray-500"
               required
             />
-            <button
-              type="button"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute inset-y-0 right-4 flex items-center text-gray-500"
-            >
+            <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute inset-y-0 right-4 flex items-center text-gray-500">
               {showConfirmPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
             </button>
           </div>
-          <button
-            type="submit"
-            className="w-full py-4 bg-[#4285F4] text-white font-semibold rounded-full shadow-lg hover:bg-[#357AE8] transition-colors"
-          >
+
+          <div className="flex justify-around text-gray-300">
+            <label className="flex items-center gap-2">
+              <input type="radio" name="role" value="user" checked={role === "user"} onChange={(e) => setRole(e.target.value)} />
+              Candidate
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="radio" name="role" value="recruiter" checked={role === "recruiter"} onChange={(e) => setRole(e.target.value)} />
+              Recruiter
+            </label>
+          </div>
+
+          <button type="submit" className="w-full py-4 bg-[#4285F4] text-white font-semibold rounded-full shadow-lg hover:bg-[#357AE8] transition-colors">
             Sign Up
           </button>
         </form>
