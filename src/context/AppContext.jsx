@@ -1,5 +1,6 @@
 // src/context/AppContext.jsx
-import React, { createContext, useContext, useReducer } from 'react';
+import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import axiosInstance from '../utils/axiosInstance';
 
 // Create Context
 const AppContext = createContext();
@@ -226,7 +227,27 @@ function appReducer(state, action) {
 // Provider Component
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
-  
+
+  // Auth check on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await axios.get('/auth');
+        if (res.data && res.data.user) {
+          dispatch({ type: 'SET_USER', payload: res.data.user });
+          dispatch({ type: 'UPDATE_CURRENT_USER', payload: res.data.user });
+        } else {
+          dispatch({ type: 'SET_USER', payload: null });
+          dispatch({ type: 'UPDATE_CURRENT_USER', payload: {} });
+        }
+      } catch (err) {
+        dispatch({ type: 'SET_USER', payload: null });
+        dispatch({ type: 'UPDATE_CURRENT_USER', payload: {} });
+      }
+    };
+    checkAuth();
+  }, []);
+
   const value = {
     state,
     dispatch

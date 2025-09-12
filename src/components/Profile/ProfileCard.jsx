@@ -2,7 +2,6 @@
 
 import { MapPin, Plus, Eye } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
-
 /**
  * ProfileCard Component
  * 

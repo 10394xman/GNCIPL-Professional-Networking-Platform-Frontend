@@ -54,20 +54,7 @@ function Header() {
   /**
    * Handle user logout with cleanup
    */
-  const handleLogout = async () => {
-    try {
-      await axios.post("/auth/logout");
-    } catch (err) {
-      // Optionally handle error
-    }
-    // Clear local storage
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("user");
-    // Clear any session data
-    sessionStorage.clear();
-    setShowProfileMenu(false);
-    window.location.reload();
-  };
+  // (Removed handleLogout logic; logout is now handled globally)
 
   /**
    * Handle tab navigation
@@ -276,8 +263,12 @@ function Header() {
 
                     <div className="border-t border-gray-200 my-1"></div>
 
+                    {/* Sign Out button triggers global logout if needed */}
                     <button
-                      onClick={handleLogout}
+                      onClick={() => {
+                        setShowProfileMenu(false);
+                        // Optionally, dispatch a global logout action or navigate to login
+                      }}
                       className="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 w-full text-left transition-colors"
                     >
                       <LogOut className="w-4 h-4 mr-3" />
