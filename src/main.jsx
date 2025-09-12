@@ -7,15 +7,16 @@ import App from "./App";
 import "./index.css";
 import { BrowserRouter } from "react-router-dom";
 import AuthProvider from "./components/Messages/authWrapper";
+import { AppProvider } from "./context/AppContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
         <Provider store={store}>
-          {" "}
-          {/* 👈 Wrap App */}
+          <AppProvider>
           <App />
+          </AppProvider>
         </Provider>
       </AuthProvider>
     </BrowserRouter>

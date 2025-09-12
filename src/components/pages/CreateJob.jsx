@@ -21,11 +21,11 @@ const CreateJob = () => {
     const result = await dispatch(createJob(newJob));
 
     if (result.meta.requestStatus === "fulfilled") {
-      dispatch(fetchJobs()); // refresh job list
+      dispatch(fetchJobs()); // ✅ refresh job list
       const jobId = result.payload?._id;
       alert("Job created successfully!");
 
-      // redirect to job detail page if available
+      // ✅ redirect
       if (jobId) {
         navigate(`/jobs/${jobId}`);
       } else {
@@ -33,6 +33,7 @@ const CreateJob = () => {
       }
     }
 
+    // ✅ reset form
     setNewJob({
       title: "",
       description: "",

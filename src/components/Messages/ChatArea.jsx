@@ -211,7 +211,7 @@ const renderFile = (filePath) => {
 
   return (
     <div
-      className={`bg-gray-800 w-full h-[calc(100dvh-84px)] flex flex-row justify-between rounded-4xl backdrop-brightness-110 border border-current/10 fade-in ${
+      className={`bg-[#0B1530] w-full h-[calc(100dvh)] flex flex-row justify-between rounded-4xl backdrop-brightness-110 border border-current/10 fade-in ${
         !fadeIn ? "" : "loaded"
       }`}
     >

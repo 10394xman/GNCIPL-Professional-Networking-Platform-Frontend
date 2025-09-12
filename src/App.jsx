@@ -16,10 +16,11 @@ import ProtectedRoute from "./routes/ProtectedRoute.jsx";
 import Dashboard from "./components/pages/Dashboard.jsx";
 import JobPage from "./components/pages/JobsPage.jsx"; // ✅ corrected filename
 import ChatArea from "./components/Messages/ChatArea";
-
 import AuthProvider from "./components/Messages/authWrapper";
 import axios from "axios";
 import { auth } from "./components/Messages/authWrapper";
+import CreateJob from "./components/pages/CreateJob.jsx";
+import ProfilePage from "./components/Profile/ProfilePage.jsx";
 // import CreateJob from "./components/pages/CreateJob"; // ✅ new route for recruiter
 
 function App() {
@@ -32,7 +33,7 @@ function App() {
         });
         console.log("Response: ", response.data);
         setUserDetails(response.data);
-        connectToSocket(response.data._id)
+        connectToSocket(response.data._id);
       } catch (err) {
         console.log("error in setting user details after refresh\n", err);
       }
@@ -53,17 +54,17 @@ function App() {
         path="/dashboard"
         element={
           <ProtectedRoute>
-                            <Header />
+            <Header />
 
             <Dashboard />
           </ProtectedRoute>
         }
       />
       <Route
-        path="/message"
+        path="/messages"
         element={
           <ProtectedRoute>
-                            <Header />
+            <Header />
 
             <ChatArea />
           </ProtectedRoute>
@@ -75,7 +76,7 @@ function App() {
         path="/jobs"
         element={
           <ProtectedRoute>
-                            <Header />
+            <Header />
 
             <JobPage />
           </ProtectedRoute>
@@ -87,14 +88,22 @@ function App() {
         path="/jobs/create"
         element={
           <ProtectedRoute>
-                            <Header />
-
+            <Header />
             <CreateJob />
             create job
           </ProtectedRoute>
         }
       />
+        <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Header />
+            <ProfilePage />
+          </ProtectedRoute>
+        }
 
+      />
       {/* Default Redirect */}
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>

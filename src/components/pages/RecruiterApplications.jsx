@@ -1,3 +1,4 @@
+// src/components/pages/RecruiterApplications.jsx
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -86,3 +87,4 @@ const RecruiterApplications = () => {
 };
 
 export default RecruiterApplications;
+

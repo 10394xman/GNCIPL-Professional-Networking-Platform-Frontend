@@ -7,9 +7,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@plugin [daisyui] {
-  themes: all;
-}
 
 /* Global Base Styles */
 @layer base {

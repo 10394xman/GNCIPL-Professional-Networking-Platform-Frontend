@@ -15,13 +15,14 @@ const Login = () => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("user"); // ✅ Default Candidate
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
       const res = await axiosInstance.post(
         "/auth/login",
-        { email, password },
+        { email, password, role }, // ✅ role bhi bhej rahe
         { withCredentials: true }
       );
 
@@ -31,7 +32,7 @@ const Login = () => {
         user: res.data.user || {
           name: res.data.name,
           email: res.data.email,
-          role: res.data.role,
+          role: res.data.role || role, // fallback agar backend se na aaye
         },
         token: res.data.token || res.data?.jwt, // fallback if backend uses jwt
       };
@@ -47,6 +48,7 @@ const Login = () => {
 
       alert("Login Successful!");
 
+      // ✅ Redirect by role
       if (payload.user?.role === "recruiter") {
         navigate("/recruiter-dashboard");
       } else {

@@ -18,5 +18,8 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [require('daisyui')],
+  daisyui: {
+    theme: ["light"], // enables all built-in DaisyUI themes
+  },
 }
