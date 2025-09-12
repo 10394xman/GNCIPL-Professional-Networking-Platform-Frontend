@@ -13,13 +13,14 @@ const Login = () => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("user"); // ✅ Default role Candidate
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
       const res = await axiosInstance.post(
         "/auth/login",
-        { email, password },
+        { email, password, role }, // ✅ Send role also
         { withCredentials: true }
       );
 
@@ -29,15 +30,14 @@ const Login = () => {
         user: res.data.user || {
           name: res.data.name,
           email: res.data.email,
-          role: res.data.role,
+          role: res.data.role || role, // fallback
         },
-        token: res.data.token || res.data?.jwt, // fallback if backend uses jwt
+        token: res.data.token || res.data?.jwt,
       };
 
-      // ✅ Save to Redux
       dispatch(loginSuccess(payload));
 
-      // ✅ Force save in localStorage
+      // ✅ Save in localStorage
       if (payload.token) localStorage.setItem("token", payload.token);
       if (payload.user) localStorage.setItem("user", JSON.stringify(payload.user));
 
@@ -88,6 +88,30 @@ const Login = () => {
             >
               {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
             </button>
+          </div>
+
+          {/* ✅ Role selection */}
+          <div className="flex justify-around text-gray-300">
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="role"
+                value="user"
+                checked={role === "user"}
+                onChange={(e) => setRole(e.target.value)}
+              />
+              Candidate
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="role"
+                value="recruiter"
+                checked={role === "recruiter"}
+                onChange={(e) => setRole(e.target.value)}
+              />
+              Recruiter
+            </label>
           </div>
 
           <div className="flex justify-between items-center text-sm">

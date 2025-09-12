@@ -1,4 +1,4 @@
-import React from "react";
+// src/App.jsx
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 import Login from "./components/Auth/Login";
@@ -7,8 +7,10 @@ import ForgotPassword from "./components/Auth/ForgotPassword";
 import ResetPassword from "./components/Auth/ResetPassword";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import Dashboard from "./components/pages/Dashboard";
-import JobPage from "./components/pages/JobsPage";   // ✅ corrected filename
-import CreateJob from "./components/pages/CreateJob"; // ✅ new route for recruiter
+import JobPage from "./components/pages/JobsPage";
+import CreateJob from "./components/pages/CreateJob";
+import MyApplications from "./components/pages/MyApplications";
+import RecruiterApplications from "./components/pages/RecruiterApplications";
 
 function App() {
   return (
@@ -20,7 +22,7 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
-        {/* Protected Routes */}
+        {/* Candidate Protected Routes */}
         <Route
           path="/dashboard"
           element={
@@ -29,8 +31,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
-        {/* Jobs list page */}
         <Route
           path="/jobs"
           element={
@@ -39,13 +39,29 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/my-applications"
+          element={
+            <ProtectedRoute>
+              <MyApplications />
+            </ProtectedRoute>
+          }
+        />
 
-        {/* Recruiter create job page */}
+        {/* Recruiter Protected Routes */}
         <Route
           path="/jobs/create"
           element={
             <ProtectedRoute>
               <CreateJob />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/recruiter/applications"
+          element={
+            <ProtectedRoute>
+              <RecruiterApplications />
             </ProtectedRoute>
           }
         />

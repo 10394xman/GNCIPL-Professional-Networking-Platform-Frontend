@@ -19,6 +19,24 @@ const JobPage = () => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
   };
 
+  const handleApply = (jobId) => {
+    dispatch(applyJob(jobId))
+      .unwrap()
+      .then(() => alert("✅ Applied successfully!"))
+      .catch((err) =>
+        alert(err?.message || "❌ Failed to apply for the job.")
+      );
+  };
+
+  const handleSave = (jobId) => {
+    dispatch(saveJob(jobId))
+      .unwrap()
+      .then(() => alert("💾 Job saved successfully!"))
+      .catch((err) =>
+        alert(err?.message || "❌ Failed to save the job.")
+      );
+  };
+
   const filteredJobs = jobs.filter(
     (job) =>
       job.title.toLowerCase().includes(filters.search.toLowerCase()) &&
@@ -91,13 +109,13 @@ const JobPage = () => {
               {user?.role === "user" && (
                 <div className="flex gap-4 mt-4">
                   <button
-                    onClick={() => dispatch(applyJob(job._id))}
+                    onClick={() => handleApply(job._id)}
                     className="px-4 py-2 bg-[#4285F4] hover:bg-[#357AE8] rounded-lg"
                   >
                     Apply
                   </button>
                   <button
-                    onClick={() => dispatch(saveJob(job._id))}
+                    onClick={() => handleSave(job._id)}
                     className="px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg"
                   >
                     Save

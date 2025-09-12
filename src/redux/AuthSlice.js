@@ -1,20 +1,35 @@
+// src/redux/AuthSlice.js
 import { createSlice } from "@reduxjs/toolkit";
 
-// ✅ Safe localStorage parse for user
+// ✅ Helper to read cookie by name
+const getCookie = (name) => {
+  const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
+  return match ? match[2] : null;
+};
+
 let savedUser = null;
+let savedToken = null;
+
 try {
   const userData = localStorage.getItem("user");
   if (userData && userData !== "undefined") {
     savedUser = JSON.parse(userData);
   }
+
+  const tokenData = localStorage.getItem("token");
+  if (tokenData && tokenData !== "undefined") {
+    savedToken = tokenData;
+  } else {
+    // ✅ fallback to cookie if localStorage missing
+    savedToken = getCookie("token");
+  }
 } catch (error) {
-  console.error("Error parsing user from localStorage:", error);
-  savedUser = null;
+  console.error("Error restoring auth:", error);
 }
 
 const initialState = {
-  user: savedUser, // ✅ reload pe bhi user restore hoga
-  token: localStorage.getItem("token") || null, // ✅ token persist
+  user: savedUser || null,
+  token: savedToken || null,
   status: "idle",
 };
 
@@ -23,11 +38,10 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     loginSuccess: (state, action) => {
-      state.user = action.payload.user; // ✅ backend user object (role included)
+      state.user = action.payload.user;
       state.token = action.payload.token;
       state.status = "success";
 
-      // ✅ Save token + user in localStorage
       try {
         localStorage.setItem("token", action.payload.token);
         localStorage.setItem("user", JSON.stringify(action.payload.user));
@@ -40,10 +54,11 @@ const authSlice = createSlice({
       state.token = null;
       state.status = "idle";
 
-      // ✅ Clear localStorage
       try {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
+        document.cookie =
+          "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       } catch (error) {
         console.error("Error clearing auth data:", error);
       }
@@ -56,5 +71,4 @@ const authSlice = createSlice({
 
 export const { loginSuccess, logout, setLoading } = authSlice.actions;
 export default authSlice.reducer;
-
 

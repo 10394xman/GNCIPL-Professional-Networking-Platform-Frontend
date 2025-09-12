@@ -4,9 +4,12 @@ import axiosInstance from "../utils/axiosInstance";
 // ✅ Fetch all jobs
 export const fetchJobs = createAsyncThunk(
   "jobs/fetchJobs",
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, getState }) => {
     try {
-      const res = await axiosInstance.get("/jobs");
+      const token = getState().auth.token;
+      const res = await axiosInstance.get("/jobs", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       return res.data.jobs || res.data;
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
@@ -14,7 +17,7 @@ export const fetchJobs = createAsyncThunk(
   }
 );
 
-// ✅ Create a job (for recruiters)
+// ✅ Create a job (recruiter only)
 export const createJob = createAsyncThunk(
   "jobs/createJob",
   async (jobData, { rejectWithValue, getState }) => {
@@ -75,7 +78,7 @@ export const fetchMyApplications = createAsyncThunk(
   async (_, { rejectWithValue, getState }) => {
     try {
       const token = getState().auth.token;
-      const res = await axiosInstance.get("/applications/me", {
+      const res = await axiosInstance.get("/jobs/applications/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
       return res.data.applications || res.data;
@@ -85,18 +88,55 @@ export const fetchMyApplications = createAsyncThunk(
   }
 );
 
+// ✅ Fetch recruiter’s applications
+export const fetchRecruiterApplications = createAsyncThunk(
+  "jobs/fetchRecruiterApplications",
+  async (_, { rejectWithValue, getState }) => {
+    try {
+      const token = getState().auth.token;
+      const res = await axiosInstance.get("/jobs/applications/recruiter", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return res.data.applications || res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data || err.message);
+    }
+  }
+);
+
+// ✅ Update application status (recruiter only)
+export const updateApplicationStatus = createAsyncThunk(
+  "jobs/updateApplicationStatus",
+  async ({ applicationId, status }, { rejectWithValue, getState }) => {
+    try {
+      const token = getState().auth.token;
+      const res = await axiosInstance.put(
+        `/jobs/applications/${applicationId}/status`,
+        { status }, // must be pending | reviewed | accepted | rejected
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      return res.data.application || res.data;
+    } catch (err) {
+      console.error("Update Application Status Error:", err.response?.data);
+      return rejectWithValue(err.response?.data || err.message);
+    }
+  }
+);
+
 const jobSlice = createSlice({
   name: "jobs",
   initialState: {
     jobs: [],
-    applications: [], // 👈 candidate applied jobs
-    savedJobs: [], // 👈 candidate saved jobs
-    status: "idle", // fetch jobs / fetch applications
+    applications: [],
+    savedJobs: [],
+    status: "idle",
     error: null,
     createStatus: "idle",
     createError: null,
     applyStatus: "idle",
     saveStatus: "idle",
+    recruiterApplications: [],
+    recruiterStatus: "idle",
   },
   reducers: {},
   extraReducers: (builder) => {
@@ -120,11 +160,7 @@ const jobSlice = createSlice({
       })
       .addCase(createJob.fulfilled, (state, action) => {
         state.createStatus = "succeeded";
-        if (Array.isArray(state.jobs)) {
-          state.jobs.unshift(action.payload);
-        } else {
-          state.jobs = [action.payload];
-        }
+        state.jobs.unshift(action.payload);
       })
       .addCase(createJob.rejected, (state, action) => {
         state.createStatus = "failed";
@@ -132,42 +168,44 @@ const jobSlice = createSlice({
       })
 
       // ✅ apply job
-      .addCase(applyJob.pending, (state) => {
-        state.applyStatus = "loading";
-      })
       .addCase(applyJob.fulfilled, (state, action) => {
         state.applyStatus = "succeeded";
         state.applications.push(action.payload);
       })
-      .addCase(applyJob.rejected, (state, action) => {
-        state.applyStatus = "failed";
-        state.error = action.payload;
-      })
 
       // ✅ save job
-      .addCase(saveJob.pending, (state) => {
-        state.saveStatus = "loading";
-      })
       .addCase(saveJob.fulfilled, (state, action) => {
         state.saveStatus = "succeeded";
         state.savedJobs.push(action.payload);
       })
-      .addCase(saveJob.rejected, (state, action) => {
-        state.saveStatus = "failed";
-        state.error = action.payload;
-      })
 
       // ✅ fetch my applications
-      .addCase(fetchMyApplications.pending, (state) => {
-        state.status = "loading";
-      })
       .addCase(fetchMyApplications.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.applications = action.payload;
       })
-      .addCase(fetchMyApplications.rejected, (state, action) => {
-        state.status = "failed";
+
+      // ✅ recruiter apps
+      .addCase(fetchRecruiterApplications.pending, (state) => {
+        state.recruiterStatus = "loading";
+      })
+      .addCase(fetchRecruiterApplications.fulfilled, (state, action) => {
+        state.recruiterStatus = "succeeded";
+        state.recruiterApplications = action.payload;
+      })
+      .addCase(fetchRecruiterApplications.rejected, (state, action) => {
+        state.recruiterStatus = "failed";
         state.error = action.payload;
+      })
+
+      // ✅ update application status
+      .addCase(updateApplicationStatus.fulfilled, (state, action) => {
+        const idx = state.recruiterApplications.findIndex(
+          (app) => app._id === action.payload._id
+        );
+        if (idx !== -1) {
+          state.recruiterApplications[idx] = action.payload;
+        }
       });
   },
 });
