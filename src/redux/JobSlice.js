@@ -1,7 +1,7 @@
 // src/redux/JobSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axiosInstance from "../utils/axiosInstance";
-
+const apiBase = import.meta.env.VITE_BACKEND_URL
 // ✅ Fetch all jobs
 export const fetchJobs = createAsyncThunk(
   "jobs/fetchJobs",

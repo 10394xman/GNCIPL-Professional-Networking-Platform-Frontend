@@ -22,13 +22,13 @@ import { auth } from "./components/Messages/authWrapper";
 import CreateJob from "./components/pages/CreateJob.jsx";
 import ProfilePage from "./components/Profile/ProfilePage.jsx";
 // import CreateJob from "./components/pages/CreateJob"; // ✅ new route for recruiter
-
+const apiBase = import.meta.env.VITE_BACKEND_URL
 function App() {
   const { setUserDetails, connectToSocket } = auth();
   useEffect(() => {
     const setUserDetailsAfterPageRefresh = async () => {
       try {
-        const response = await axios.get(`/api/auth/dash`, {
+        const response = await axios.get(`${apiBase}/api/auth/dash`, {
           withCredentials: true,
         });
         console.log("Response: ", response.data);
@@ -55,7 +55,6 @@ function App() {
         element={
           <ProtectedRoute>
             <Header />
-
             <Dashboard />
           </ProtectedRoute>
         }
@@ -65,7 +64,6 @@ function App() {
         element={
           <ProtectedRoute>
             <Header />
-
             <ChatArea />
           </ProtectedRoute>
         }
@@ -77,7 +75,6 @@ function App() {
         element={
           <ProtectedRoute>
             <Header />
-
             <JobPage />
           </ProtectedRoute>
         }

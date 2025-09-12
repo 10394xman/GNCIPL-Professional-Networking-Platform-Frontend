@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance"; // centralized axios
-
+const apiBase = import.meta.env.VITE_BACKEND_URL
 const ResetPassword = () => {
   const { token } = useParams();
   const navigate = useNavigate();

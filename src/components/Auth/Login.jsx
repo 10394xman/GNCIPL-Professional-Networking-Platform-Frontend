@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 import axiosInstance from "../../utils/axiosInstance";
+const apiBase = import.meta.env.VITE_BACKEND_URL
 import GoogleAuthButton from "./GoogleAuthButton";
 import { auth } from "../Messages/authWrapper";
 const Login = () => {

@@ -232,7 +232,7 @@ export function AppProvider({ children }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await axios.get('/auth');
+        const res = await axiosInstance.get(`/auth`);
         if (res.data && res.data.user) {
           dispatch({ type: 'SET_USER', payload: res.data.user });
           dispatch({ type: 'UPDATE_CURRENT_USER', payload: res.data.user });

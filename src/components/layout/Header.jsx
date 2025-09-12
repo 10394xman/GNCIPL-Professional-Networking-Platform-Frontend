@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import axios from "../../utils/axiosInstance";
+import axiosInstance from "../../utils/axiosInstance";
 import {
   Home,
   Users,
@@ -18,7 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
-
+const apiBase = import.meta.env.VITE_BACKEND_URL
 /**
  * Header Component
  *
@@ -56,7 +56,7 @@ function Header() {
    */
   const handleLogout = async () => {
     try {
-      await axios.post("/auth/logout");
+      await axiosInstance.post("/auth/logout");
     } catch (err) {
       // Optionally handle error
     }
@@ -85,7 +85,7 @@ function Header() {
     } else if (tabName === "jobs") {
       navigate("/jobs");
     } else if (tabName === "notifications") {
-      navigate("/notifications");
+      navigate("/dashboard");
     } else if (tabName === "profile") {
       navigate("/profile");
     }

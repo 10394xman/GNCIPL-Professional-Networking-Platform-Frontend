@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 
 import { useNavigate } from "react-router";
 import io, { Socket } from "socket.io-client";
-
+const apiBase = import.meta.env.VITE_BACKEND_URL
 const Authcontext = createContext<any | null>(null);
 
 const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -68,7 +68,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const getAllUsers = async () => {
     try {
-      const response = await axios.get(`/api/messages`, {
+      const response = await axios.get(`${apiBase}/api/messages`, {
         withCredentials: true,
       });
       console.log("All Users: ", response.data);
@@ -79,7 +79,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
   const getAllMessagesForSelectedUser = async (id: string) => {
     try {
-      const response = await axios.get(`/api/messages/${id}`, {
+      const response = await axios.get(`${apiBase}/api/messages/${id}`, {
         withCredentials: true,
       });
       console.log(
@@ -199,7 +199,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
       if (text) formData.append("text", text);
       const response = await axios.post(
-        `/api/messages/${
+        `${apiBase}/api/messages/${
           selectedUser?._id
         }`,
         formData,
@@ -221,7 +221,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (file) formData.append("file", file);
       if (text) formData.append("text", text);
       const response = await axios.post(
-        `/api/messages/${
+        `${apiBase}/api/messages/${
           selectedUser?._id
         }`,
         {
@@ -248,7 +248,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         navigate("/signin");
         return;
       }
-      await axios.delete(`/api/messages/${messageId}`, {
+      await axios.delete(`${apiBase}/api/messages/${messageId}`, {
         withCredentials: true,
       });
       console.log("Deleted!");
@@ -267,7 +267,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
       const response = await axios.put(
-        `/api/messages/${messageId}`,
+        `${apiBase}/api/messages/${messageId}`,
         {
           text: text,
         },

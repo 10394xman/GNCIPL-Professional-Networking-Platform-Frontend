@@ -1,5 +1,5 @@
 // src/components/pages/JobPage.jsx
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchJobs, applyJob, saveJob } from "../../redux/JobSlice";
 import { Link } from "react-router-dom";

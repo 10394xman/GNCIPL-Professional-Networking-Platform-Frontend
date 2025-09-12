@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axiosInstance from "../utils/axiosInstance";
-
+const apiBase = import.meta.env.VITE_BACKEND_URL
 // ✅ Fetch posts
 export const fetchPosts = createAsyncThunk(
   "posts/fetchPosts",

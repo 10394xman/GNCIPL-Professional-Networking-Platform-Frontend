@@ -3,7 +3,7 @@ import { auth } from "./authWrapper";
 // import { formatedTime } from "../utils/arraymethods"; // Make sure this import is correct
 import axios from "axios";
 import AllUsers from "./AllUsers";
-
+const apiBase = import.meta.env.VITE_BACKEND_URL
 const ChatArea = () => {
   const sendButtonRef = useRef(null);
   const editButtonRef = useRef(null);
@@ -158,7 +158,7 @@ const renderFile = (filePath) => {
 
     try {
       const res = await axios.post(
-        `/api/messages/${selectedUser?._id}`,
+        `${apiBase}/api/messages/${selectedUser?._id}`,
         formData,
         {
           withCredentials: true,

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import { auth } from "./authWrapper";
 import axios from "axios";
-
+const apiBase = import.meta.env.VITE_BACKEND_URL
 const OnlineUsers = (props) => {
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
   const {

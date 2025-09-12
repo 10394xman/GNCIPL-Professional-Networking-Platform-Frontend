@@ -5,7 +5,7 @@ import { useDispatch } from "react-redux";
 import { loginSuccess } from "../../redux/AuthSlice";
 import axiosInstance from "../../utils/axiosInstance";
 import { auth } from "../Messages/authWrapper";
-
+const apiBase = import.meta.env.VITE_BACKEND_URL
 const Signup = () => {
   const {setUserDetails} = auth();
   const [showPassword, setShowPassword] = useState(false);
