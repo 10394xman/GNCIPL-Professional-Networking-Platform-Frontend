@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "https://global-connect-backend-1.onrender.com/api/$1" }
+  ]
+}
